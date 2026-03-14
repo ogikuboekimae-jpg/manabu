@@ -1,140 +1,115 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>炊飯器フィット診断</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炊飯器フィット診断</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            line-height: 1.5;
+            color: #333;
+            background-color: #f9f9f9;
+            font-size: 16px;
+        }
+        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 25px; }
+        .progressDots { margin-bottom: 20px; text-align: center; }
+        .dot { height: 10px; width: 10px; margin: 5px; display: inline-block; border-radius: 50%; background: #ddd; }
+        .activeDot { background: #00a86b; }
 
-<style>
-/* 洗濯機診断と統一したスタイル */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f9f9f9;
-}
+        h3 { font-size: 1.2rem; margin-bottom: 15px; }
 
-h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .option input[type="radio"] { transform: scale(1.4); margin-right: 12px; vertical-align: middle; }
+        .option:has(input:checked) { border-color: #00a86b; background-color: #f0fff4; }
 
-.progressDots { margin-bottom: 25px; text-align: center; }
-.dot { height: 12px; width: 12px; margin: 6px; display: inline-block; border-radius: 50%; background: #ddd; }
-.activeDot { background: #00a86b; } /* 炊飯器はお米のイメージで緑系にしてみました */
+        .buttonArea { display: flex; gap: 12px; margin-top: 25px; }
+        button { flex: 1; padding: 16px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
+        .nextBtn { background: #ccc; color: white; }
+        .nextBtn.active { background: #00a86b; box-shadow: 0 4px 10px rgba(0,168,107,0.2); }
+        .backBtn { background: #999; color: white; }
 
-.option {
-    display: block;
-    margin: 12px 0;
-    padding: 18px;
-    border: 2px solid #eee;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    transition: 0.2s;
-}
+        .result { margin-top: 20px; padding: 25px; background: #fff; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .result h2 { font-size: 1.4rem; text-align: center; }
+        .rank { margin-top: 15px; background: #fdfdfd; padding: 18px; border: 1px solid #eee; border-radius: 12px; }
 
-.option input[type="radio"] { transform: scale(1.3); margin-right: 10px; }
-.option:has(input:checked) { border-color: #00a86b; background-color: #f0fff4; }
+        .actionButtons { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+        .reset { background: #00a86b; color: white; padding: 18px; font-size: 1.1rem; }
+        .homeBtn { background: #333; color: white !important; text-decoration: none; text-align: center; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; }
 
-.buttonArea { display: flex; gap: 15px; margin-top: 30px; }
-button { flex: 1; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
-
-.nextBtn { background: #ccc; color: white; }
-.nextBtn.active { background: #00a86b; box-shadow: 0 4px 10px rgba(0,168,107,0.2); }
-.backBtn { background: #999; color: white; }
-
-/* 結果画面 */
-.result { margin-top: 20px; padding: 20px; background: #fff; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-.rank { margin-top: 15px; background: #fdfdfd; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
-
-.actionButtons { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
-.reset { background: #00a86b; color: white; width: 100%; padding: 16px; font-size: 18px; font-weight: bold; }
-.homeBtn { background: #333; color: white; text-decoration: none; text-align: center; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; }
-
-@media (min-width: 768px) { body { padding: 40px; } }
-</style>
+        @media (min-width: 768px) {
+            body { padding: 40px; font-size: 18px; }
+            h1 { font-size: 2.2rem; }
+            h3 { font-size: 1.5rem; }
+            .option { padding: 24px; font-size: 1.2rem; }
+            .rank b { font-size: 1.4rem !important; }
+        }
+    </style>
 </head>
-
 <body>
-
-<h1>🍚 炊飯器フィット診断</h1>
-<div id="quiz"></div>
-<div id="result"></div>
-
-<script>
-// --- 炊飯器用ロジック ---
-let baseScore={zojirushi:5, tiger:5, panasonic:4, mitsubishi:4, toshiba:3}
-let score={...baseScore}
-let step=0
-let sizeHint=""
-
-const questions=[
-    { text:"① 世帯人数（一度に炊く量）", answers:[ {label:"1〜2人（0.5〜2合）",action:()=>sizeHint="3合〜3.5合炊き"}, {label:"3〜4人（2〜4合）",action:()=>sizeHint="5.5合炊き"}, {label:"5人以上（5合以上）",action:()=>sizeHint="1升炊き"} ] },
-    { text:"② お好みの食感", answers:[ {label:"もっちり・粘り",action:()=>score.zojirushi*=1.4}, {label:"しゃっきり・粒立ち",action:()=>score.mitsubishi*=1.4}, {label:"バランス重視",action:()=>score.panasonic+=2} ] },
-    { text:"③ よく炊くお米", answers:[ {label:"白米メイン",action:()=>score.tiger+=1}, {label:"玄米・雑穀米",action:()=>score.panasonic*=1.3}, {label:"冷凍用も多めに炊く",action:()=>score.zojirushi+=2} ] },
-    { text:"④ 炊飯器の加熱方式", answers:[ {label:"とにかく美味しく（圧力IH）",action:()=>{score.zojirushi+=2;score.tiger+=2}}, {label:"手入れのしやすさ（IH）",action:()=>{score.mitsubishi+=2}}, {label:"安さ重視（マイコン）",action:()=>score.toshiba+=2} ] },
-    { text:"⑤ デザインの好み", answers:[ {label:"スタイリッシュ・四角",action:()=>score.mitsubishi+=2}, {label:"伝統的・丸み",action:()=>score.zojirushi+=1}, {label:"特に気にしない",action:()=>{}} ] }
-]
-
-function showQuestion(){
-    if(step>=questions.length){ showResult(); return; }
-    let dots=""; for(let i=0;i<questions.length;i++){ dots+=`<span class="dot ${i<step?'activeDot':''}"></span>`; }
-    let html=`<div class="progressDots">${dots}</div><h3>${questions[step].text}</h3>`;
-    questions[step].answers.forEach((ans,i)=>{ html+=`<label class="option"><input type="radio" name="q" value="${i}" onchange="activateButton()">${ans.label}</label>`; });
-    html+=`<div class="buttonArea"><button class="backBtn" onclick="prevQuestion()">戻る</button><button id="nextBtn" class="nextBtn" onclick="nextQuestion()">次へ</button></div>`;
-    document.getElementById("quiz").innerHTML=html;
-}
-
-function activateButton(){ document.getElementById("nextBtn").classList.add("active"); }
-function nextQuestion(){
-    let checked=document.querySelector("input[name='q']:checked");
-    if(!checked){ alert("選択してください"); return; }
-    let index=checked.value;
-    questions[step].answers[index].action();
-    step++; showQuestion();
-}
-function prevQuestion(){ if(step===0)return; step--; showQuestion(); }
-
-function showResult(){
-    const brands={
-        zojirushi:{name:"象印マホービン",point:"圧倒的な炊き分け能力",info:"「炎舞炊き」でもっちりとした甘みを引き出すのが得意。",models:["NW-FB10","NW-PV10"]},
-        tiger:{name:"タイガー魔法瓶",point:"土鍋ごはんの再現力",info:"「ご泡火炊き」で土鍋のような力強い泡立ちと香ばしさを実現。",models:["JRX-T100","JPI-X100"]},
-        panasonic:{name:"パナソニック",point:"おまかせで美味しい",info:"「ビストロ」シリーズ。冷凍用ごはんも美味しく炊ける機能が充実。",models:["SR-V10BA","SR-NB102"]},
-        mitsubishi:{name:"三菱電機",point:"一粒一粒の粒立ち",info:"「本炭釜」。圧力をかけない炊飯で、しゃっきりした食感が好きな人に。",models:["NJ-BW10G","NJ-VVD10"]},
-        toshiba:{name:"東芝",point:"真空で鮮度を保つ",info:"「真空圧力IH」。お米の芯まで素早く吸水させ、冷めても美味しい。",models:["RC-10ZWV","RC-10VXV"]}
-    }
-    let sorted=Object.entries(score).sort((a,b)=>b[1]-a[1]);
-    let html="<div class='result'><h2>診断結果ランキング</h2><p>推奨サイズ：<strong>"+sizeHint+"</strong></p>";
-    for(let i=0;i<3;i++){
-        let key=sorted[i][0]; let b=brands[key];
-        html+=`
-        <div class="rank">
-            <b style="font-size:20px; color:#00a86b;">${i+1}位 ${b.name}</b><br>
-            <strong>強み：</strong>${b.point}<br>
-            <strong>解説：</strong>${b.info}<br>
-            <strong>おすすめ：</strong>${b.models.join(" / ")}
-        </div>`;
-    }
-    html+=`
-    <div class="actionButtons">
-        <button class="reset" onclick="resetQuiz()">もう一度診断する</button>
-        <a href="index.html" class="homeBtn">トップページに戻る</a>
-    </div>
-    </div>`;
-    document.getElementById("quiz").innerHTML="";
-    document.getElementById("result").innerHTML=html;
-}
-
-function resetQuiz(){
-    score={...baseScore}; step=0; 
-    document.getElementById("result").innerHTML="";
-    showQuestion();
-}
-
-showQuestion();
-</script>
+    <h1>🍚 炊飯器フィット診断</h1>
+    <div id="quiz"></div>
+    <div id="result"></div>
+    <script>
+        /* 前回の炊飯器用ロジックをここに貼り付け（変更なし） */
+        let baseScore={zojirushi:5, tiger:5, panasonic:4, mitsubishi:4, toshiba:3};
+        let score={...baseScore}; let step=0; let sizeHint="";
+        const questions=[
+            { text:"① 世帯人数（一度に炊く量）", answers:[ {label:"1〜2人（0.5〜2合）",action:()=>sizeHint="3合〜3.5合炊き"}, {label:"3〜4人（2〜4合）",action:()=>sizeHint="5.5合炊き"}, {label:"5人以上（5合以上）",action:()=>sizeHint="1升炊き"} ] },
+            { text:"② お好みの食感", answers:[ {label:"もっちり・粘り",action:()=>score.zojirushi*=1.4}, {label:"しゃっきり・粒立ち",action:()=>score.mitsubishi*=1.4}, {label:"バランス重視",action:()=>score.panasonic+=2} ] },
+            { text:"③ よく炊くお米", answers:[ {label:"白米メイン",action:()=>score.tiger+=1}, {label:"玄米・雑穀米",action:()=>score.panasonic*=1.3}, {label:"冷凍用も多めに炊く",action:()=>score.zojirushi+=2} ] },
+            { text:"④ 炊飯器の加熱方式", answers:[ {label:"とにかく美味しく（圧力IH）",action:()=>{score.zojirushi+=2;score.tiger+=2}}, {label:"手入れのしやすさ（IH）",action:()=>{score.mitsubishi+=2}}, {label:"安さ重視（マイコン）",action:()=>score.toshiba+=2} ] },
+            { text:"⑤ デザインの好み", answers:[ {label:"スタイリッシュ・四角",action:()=>score.mitsubishi+=2}, {label:"伝統的・丸み",action:()=>score.zojirushi+=1}, {label:"特に気にしない",action:()=>{}} ] }
+        ];
+        function showQuestion(){
+            if(step>=questions.length){ showResult(); return; }
+            let dots=""; for(let i=0;i<questions.length;i++){ dots+=`<span class="dot ${i<step?'activeDot':''}"></span>`; }
+            let html=`<div class="progressDots">${dots}</div><h3>${questions[step].text}</h3>`;
+            questions[step].answers.forEach((ans,i)=>{ html+=`<label class="option"><input type="radio" name="q" value="${i}" onchange="activateButton()">${ans.label}</label>`; });
+            html+=`<div class="buttonArea"><button class="backBtn" onclick="prevQuestion()">戻る</button><button id="nextBtn" class="nextBtn" onclick="nextQuestion()">次へ</button></div>`;
+            document.getElementById("quiz").innerHTML=html;
+        }
+        function activateButton(){ document.getElementById("nextBtn").classList.add("active"); }
+        function nextQuestion(){
+            let checked=document.querySelector("input[name='q']:checked");
+            if(!checked){ alert("選択してください"); return; }
+            questions[step].answers[checked.value].action();
+            step++; showQuestion();
+        }
+        function prevQuestion(){ if(step===0)return; step--; showQuestion(); }
+        function showResult(){
+            const brands={
+                zojirushi:{name:"象印マホービン",point:"圧倒的な炊き分け能力",info:"「炎舞炊き」でもっちりとした甘みを引き出すのが得意。",models:["NW-FB10","NW-PV10"]},
+                tiger:{name:"タイガー魔法瓶",point:"土鍋ごはんの再現力",info:"「ご泡火炊き」で土鍋のような力強い泡立ちと香ばしさを実現。",models:["JRX-T100","JPI-X100"]},
+                panasonic:{name:"パナソニック",point:"おまかせで美味しい",info:"「ビストロ」シリーズ。冷凍用ごはんも美味しく炊ける機能が充実。",models:["SR-V10BA","SR-NB102"]},
+                mitsubishi:{name:"三菱電機",point:"一粒一粒の粒立ち",info:"「本炭釜」。圧力をかけない炊飯で、しゃっきりした食感が好きな人に。",models:["NJ-BW10G","NJ-VVD10"]},
+                toshiba:{name:"東芝",point:"真空で鮮度を保つ",info:"「真空圧力IH」。お米の芯まで素早く吸水させ、冷めても美味しい。",models:["RC-10ZWV","RC-10VXV"]}
+            }
+            let sorted=Object.entries(score).sort((a,b)=>b[1]-a[1]);
+            let html="<div class='result'><h2>診断結果ランキング</h2><p>推奨サイズ：<strong>"+sizeHint+"</strong></p>";
+            for(let i=0;i<3;i++){
+                let key=sorted[i][0]; let b=brands[key];
+                html+=`<div class="rank"><b style="font-size:1.2rem; color:#00a86b;">${i+1}位 ${b.name}</b><br><div style="margin-top:8px;"><strong>強み：</strong>${b.point}<br><strong>解説：</strong>${b.info}<br><strong>おすすめ：</strong>${b.models.join(" / ")}</div></div>`;
+            }
+            html+=`<div class="actionButtons"><button class="reset" onclick="resetQuiz()">もう一度診断する</button><a href="index.html" class="homeBtn">トップページ（index）に戻る</a></div></div>`;
+            document.getElementById("quiz").innerHTML=""; document.getElementById("result").innerHTML=html;
+        }
+        function resetQuiz(){ score={...baseScore}; step=0; document.getElementById("result").innerHTML=""; showQuestion(); }
+        showQuestion();
+    </script>
 </body>
 </html>
