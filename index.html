@@ -3,66 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>家電紹介ホーム</title>
+    <title>家電フィット診断ホーム</title>
     <style>
+        /* 洗濯機・炊飯器ページと共通のスタイル設定 */
         body {
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
-            background-color: #f4f4f4;
+            max-width: 800px; /* iPadで見やすい幅 */
+            margin: auto;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            min-height: 90vh;
+            justify-content: center; /* 画面中央に配置 */
         }
-        h1 {
-            color: #333;
-        }
+
         .container {
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
+            padding: 40px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             text-align: center;
         }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
+
         li {
-            margin: 15px 0;
+            margin: 20px 0;
         }
+
+        /* リンクを診断ページのボタンと共通のデザインに */
         a {
             text-decoration: none;
-            color: #007bff;
+            color: #333;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 20px;
             display: block;
-            padding: 10px;
-            border: 1px solid #007bff;
-            border-radius: 5px;
-            transition: all 0.3s;
+            padding: 24px;
+            border: 2px solid #eee;
+            border-radius: 16px;
+            background-color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        a:hover {
-            background-color: #007bff;
-            color: white;
+
+        /* ホバー（またはタップ）時の反応 */
+        a:hover, a:active {
+            border-color: #ff8c00; /* 洗濯機ページ側のオレンジをアクセントに */
+            background-color: #fffaf5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        /* アイコンを少し強調 */
+        a span {
+            display: block;
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        /* iPadなどの大きな画面向けの調整 */
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+            h1 {
+                font-size: 36px;
+            }
+            .container {
+                padding: 60px 40px;
+            }
+            ul {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* 横に2つ並べる */
+                gap: 20px;
+            }
+            li {
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>家電フィット診断</h1>
-        <p>あなたにピッタリな家電をおすすめします。</p>
+        <h1>🏠 家電フィット診断</h1>
+        <p class="subtitle">ライフスタイルにぴったりの一台を見つけよう</p>
         
         <ul>
-            <li><a href="sentakuki.html">🧺 ドラム式洗濯機</a></li>
-            <li><a href="suihanki.html">🍚 炊飯器</a></li>
+            <li>
+                <a href="sentakuki.html">
+                    <span>🧺</span>
+                    ドラム式洗濯機 診断
+                </a>
+            </li>
+            <li>
+                <a href="suihanki.html">
+                    <span>🍚</span>
+                    最新炊飯器 診断
+                </a>
+            </li>
         </ul>
     </div>
 
 </body>
-
 </html>
