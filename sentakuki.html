@@ -2,352 +2,155 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ドラム式洗濯機フィット診断</title>
 
 <style>
-
-body{
-font-family:sans-serif;
-padding:20px;
-max-width:720px;
-margin:auto;
+/* 既存のスタイルを継承しつつ、戻るボタン用のスタイルを追加 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f9f9;
 }
 
-.progressDots{
-margin-bottom:20px;
-text-align:center;
+h1 { font-size: 24px; text-align: center; margin-bottom: 30px; }
+
+.progressDots { margin-bottom: 25px; text-align: center; }
+.dot { height: 12px; width: 12px; margin: 6px; display: inline-block; border-radius: 50%; background: #ddd; }
+.activeDot { background: #ff8c00; }
+
+.option {
+    display: block;
+    margin: 12px 0;
+    padding: 18px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
 }
 
-.dot{
-height:12px;
-width:12px;
-margin:4px;
-display:inline-block;
-border-radius:50%;
-background:#ddd;
+.option input[type="radio"] { transform: scale(1.3); margin-right: 10px; }
+.option:has(input:checked) { border-color: #ff8c00; background-color: #fff9f0; }
+
+.buttonArea { display: flex; gap: 15px; margin-top: 30px; }
+button { flex: 1; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
+
+.nextBtn { background: #ccc; color: white; }
+.nextBtn.active { background: #ff8c00; }
+.backBtn { background: #999; color: white; }
+
+/* 結果画面の設定 */
+.result { margin-top: 20px; padding: 20px; background: #fff; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.rank { margin-top: 15px; background: #fdfdfd; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+
+/* ボタン類 */
+.actionButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 30px;
 }
 
-.activeDot{
-background:#ff8c00;
+.reset { background: #ff8c00; color: white; width: 100%; padding: 16px; font-size: 18px; font-weight: bold; }
+.homeBtn { 
+    background: #333; 
+    color: white; 
+    text-decoration: none; 
+    text-align: center; 
+    padding: 16px; 
+    border-radius: 12px; 
+    font-size: 18px; 
+    font-weight: bold; 
 }
 
-.option{
-margin:10px 0;
-padding:10px;
-border:1px solid #ddd;
-border-radius:6px;
+@media (min-width: 768px) {
+    body { padding: 40px; }
 }
-
-.buttonArea{
-display:flex;
-gap:10px;
-margin-top:15px;
-}
-
-button{
-flex:1;
-padding:12px;
-font-size:16px;
-border:none;
-border-radius:6px;
-}
-
-.nextBtn{
-background:#ccc;
-color:white;
-}
-
-.nextBtn.active{
-background:#ff8c00;
-}
-
-.backBtn{
-background:#999;
-color:white;
-}
-
-.result{
-margin-top:20px;
-padding:15px;
-background:#f5f5f5;
-border-radius:10px;
-}
-
-.rank{
-margin-top:12px;
-background:white;
-padding:12px;
-border-radius:8px;
-}
-
-.reset{
-background:#333;
-color:white;
-width:100%;
-padding:12px;
-margin-top:20px;
-}
-
 </style>
 </head>
 
 <body>
 
 <h1>🧺 ドラム式洗濯機フィット診断</h1>
-
 <div id="quiz"></div>
 <div id="result"></div>
 
 <script>
-
-let baseScore={
-panasonic:5,
-hitachi:4,
-toshiba:4,
-aqua:3,
-hisense:2
-}
-
+// --- ロジック ---
+let baseScore={panasonic:5, hitachi:4, toshiba:4, aqua:3, hisense:2}
 let score={...baseScore}
-
 let answersHistory=[]
 let step=0
 let capacityHint=""
 
 const questions=[
-
-{
-text:"① 世帯人数",
-answers:[
-{label:"1人",action:()=>capacityHint="10〜11kg"},
-{label:"2〜3人",action:()=>capacityHint="11〜12kg"},
-{label:"4人以上",action:()=>capacityHint="12kg以上"}
-]
-},
-
-{
-text:"② 汚れタイプ",
-answers:[
-{label:"泥・作業着",action:()=>score.hitachi*=1.4},
-{label:"皮脂・ニオイ",action:()=>score.toshiba*=1.3},
-{label:"普段着",action:()=>score.aqua+=1}
-]
-},
-
-{
-text:"③ 乾燥使用頻度",
-answers:[
-{label:"毎日",action:()=>score.panasonic*=1.4},
-{label:"雨の日",action:()=>score.hitachi+=1},
-{label:"ほぼ使わない",action:()=>score.hisense+=1}
-]
-},
-
-{
-text:"④ 静音性",
-answers:[
-{label:"夜使う",action:()=>{score.panasonic+=2;score.toshiba+=2}},
-{label:"普通",action:()=>score.hitachi+=1},
-{label:"気にしない",action:()=>score.hisense+=2}
-]
-},
-
-{
-text:"⑤ 設置スペース",
-answers:[
-{label:"広い",action:()=>score.hitachi+=1},
-{label:"標準",action:()=>score.aqua+=1},
-{label:"狭い",action:()=>score.panasonic+=1},
-{label:"わからない",action:()=>{}}
-]
-},
-
-{
-text:"⑥ 乾燥方式",
-answers:[
-{label:"ヒートポンプが良い",action:()=>score.panasonic+=2},
-{label:"普通",action:()=>score.toshiba+=1},
-{label:"気にしない",action:()=>score.hisense+=1}
-]
-},
-
-{
-text:"⑦ 価格帯",
-answers:[
-{label:"低価格モデル",action:()=>{score.hisense+=3;score.aqua+=2}},
-{label:"中堅モデル",action:()=>{score.aqua+=2;score.toshiba+=1}},
-{label:"高機能モデル",action:()=>{score.panasonic+=2;score.hitachi+=2}}
-]
-}
-
+    { text:"① 世帯人数", answers:[ {label:"1人",action:()=>capacityHint="10〜11kg"}, {label:"2〜3人",action:()=>capacityHint="11〜12kg"}, {label:"4人以上",action:()=>capacityHint="12kg以上"} ] },
+    { text:"② 汚れタイプ", answers:[ {label:"泥・作業着",action:()=>score.hitachi*=1.4}, {label:"皮脂・ニオイ",action:()=>score.toshiba*=1.3}, {label:"普段着",action:()=>score.aqua+=1} ] },
+    { text:"③ 乾燥使用頻度", answers:[ {label:"毎日",action:()=>score.panasonic*=1.4}, {label:"雨の日",action:()=>score.hitachi+=1}, {label:"ほぼ使わない",action:()=>score.hisense+=1} ] },
+    { text:"④ 静音性", answers:[ {label:"夜使う",action:()=>{score.panasonic+=2;score.toshiba+=2}}, {label:"普通",action:()=>score.hitachi+=1}, {label:"気にしない",action:()=>score.hisense+=2} ] },
+    { text:"⑤ 設置スペース", answers:[ {label:"広い",action:()=>score.hitachi+=1}, {label:"標準",action:()=>score.aqua+=1}, {label:"狭い",action:()=>score.panasonic+=1}, {label:"わからない",action:()=>{}} ] },
+    { text:"⑥ 乾燥方式", answers:[ {label:"ヒートポンプが良い",action:()=>score.panasonic+=2}, {label:"普通",action:()=>score.toshiba+=1}, {label:"気にしない",action:()=>score.hisense+=1} ] },
+    { text:"⑦ 価格帯", answers:[ {label:"低価格モデル",action:()=>{score.hisense+=3;score.aqua+=2}}, {label:"中堅モデル",action:()=>{score.aqua+=2;score.toshiba+=1}}, {label:"高機能モデル",action:()=>{score.panasonic+=2;score.hitachi+=2}} ] }
 ]
 
 function showQuestion(){
-
-if(step>=questions.length){
-showResult()
-return
+    if(step>=questions.length){ showResult(); return; }
+    let dots=""; for(let i=0;i<questions.length;i++){ dots+=`<span class="dot ${i<step?'activeDot':''}"></span>`; }
+    let html=`<div class="progressDots">${dots}</div><h3>${questions[step].text}</h3>`;
+    questions[step].answers.forEach((ans,i)=>{ html+=`<label class="option"><input type="radio" name="q" value="${i}" onchange="activateButton()">${ans.label}</label>`; });
+    html+=`<div class="buttonArea"><button class="backBtn" onclick="prevQuestion()">戻る</button><button id="nextBtn" class="nextBtn" onclick="nextQuestion()">次へ</button></div>`;
+    document.getElementById("quiz").innerHTML=html;
 }
 
-let dots=""
-
-for(let i=0;i<questions.length;i++){
-dots+=`<span class="dot ${i<step?'activeDot':''}"></span>`
-}
-
-let html=`
-<div class="progressDots">
-${dots}
-</div>
-
-<h3>${questions[step].text}</h3>
-`
-
-questions[step].answers.forEach((ans,i)=>{
-
-html+=`
-<label class="option">
-<input type="radio" name="q" value="${i}" onchange="activateButton()">
-${ans.label}
-</label>
-`
-
-})
-
-html+=`
-<div class="buttonArea">
-<button class="backBtn" onclick="prevQuestion()">戻る</button>
-<button id="nextBtn" class="nextBtn" onclick="nextQuestion()">次へ</button>
-</div>
-`
-
-document.getElementById("quiz").innerHTML=html
-
-}
-
-function activateButton(){
-document.getElementById("nextBtn").classList.add("active")
-}
-
+function activateButton(){ document.getElementById("nextBtn").classList.add("active"); }
 function nextQuestion(){
-
-let checked=document.querySelector("input[name='q']:checked")
-
-if(!checked){
-alert("選択してください")
-return
+    let checked=document.querySelector("input[name='q']:checked");
+    if(!checked){ alert("選択してください"); return; }
+    let index=checked.value;
+    answersHistory[step]=index;
+    questions[step].answers[index].action();
+    step++; showQuestion();
 }
-
-let index=checked.value
-
-answersHistory[step]=index
-
-questions[step].answers[index].action()
-
-step++
-
-showQuestion()
-
-}
-
-function prevQuestion(){
-
-if(step===0)return
-
-step--
-
-showQuestion()
-
-}
+function prevQuestion(){ if(step===0)return; step--; showQuestion(); }
 
 function showResult(){
-
-const brands={
-
-panasonic:{
-name:"パナソニック",
-point:"乾燥性能トップクラス",
-info:"ヒートポンプ乾燥でタオルがふわふわ",
-models:["NA-LX129","NA-LX127","NA-VX900"]
-},
-
-hitachi:{
-name:"日立",
-point:"洗浄力が強い",
-info:"ナイアガラ洗浄で泥汚れに強い",
-models:["BD-STX130","BD-SX120","BD-SV120"]
-},
-
-toshiba:{
-name:"東芝",
-point:"静音バランス",
-info:"ウルトラファインバブル洗浄",
-models:["TW-127XP","TW-127XM","TW-95GM"]
-},
-
-aqua:{
-name:"AQUA",
-point:"コスパ型",
-info:"価格と性能のバランス",
-models:["AQW-DX12","AQW-DX11"]
-},
-
-hisense:{
-name:"ハイセンス",
-point:"低価格",
-info:"ドラム式入門モデル",
-models:["HDK120","HDK110"]
-}
-
-}
-
-let sorted=Object.entries(score).sort((a,b)=>b[1]-a[1])
-
-let html="<div class='result'>"
-
-html+="<h2>診断結果ランキング</h2>"
-html+="推奨容量："+capacityHint+"<br>"
-
-for(let i=0;i<3;i++){
-
-let key=sorted[i][0]
-let b=brands[key]
-
-html+=`
-<div class="rank">
-<b>${i+1}位 ${b.name}</b><br>
-強み：${b.point}<br>
-解説：${b.info}<br><br>
-おすすめ型番：<br>
-${b.models.map(m=>"・"+m).join("<br>")}
-</div>
-`
-
-}
-
-html+=`<button class="reset" onclick="resetQuiz()">もう一度診断</button></div>`
-
-document.getElementById("quiz").innerHTML=""
-document.getElementById("result").innerHTML=html
-
+    const brands={
+        panasonic:{name:"パナソニック",point:"乾燥性能トップクラス",info:"ヒートポンプ乾燥でタオルがふわふわ",models:["NA-LX129","NA-LX127"]},
+        hitachi:{name:"日立",point:"洗浄力が強い",info:"ナイアガラ洗浄で泥汚れに強い",models:["BD-STX130","BD-SX120"]},
+        toshiba:{name:"東芝",point:"静音バランス",info:"ウルトラファインバブル洗浄",models:["TW-127XP","TW-127XM"]},
+        aqua:{name:"AQUA",point:"コスパ型",info:"価格と性能のバランス",models:["AQW-DX12","AQW-DX11"]},
+        hisense:{name:"ハイセンス",point:"低価格",info:"ドラム式入門モデル",models:["HDK120","HDK110"]}
+    }
+    let sorted=Object.entries(score).sort((a,b)=>b[1]-a[1]);
+    let html="<div class='result'><h2>診断結果ランキング</h2><p>推奨容量：<strong>"+capacityHint+"</strong></p>";
+    for(let i=0;i<3;i++){
+        let key=sorted[i][0]; let b=brands[key];
+        html+=`<div class="rank"><b style="font-size:20px; color:#ff8c00;">${i+1}位 ${b.name}</b><br><strong>強み：</strong>${b.point}<br><strong>解説：</strong>${b.info}<br><strong>型番：</strong>${b.models.join(" / ")}</div>`;
+    }
+    // ここでボタンを2つ（やり直し / トップへ戻る）追加
+    html+=`
+    <div class="actionButtons">
+        <button class="reset" onclick="resetQuiz()">もう一度診断する</button>
+        <a href="index.html" class="homeBtn">トップページ（index）に戻る</a>
+    </div>
+    </div>`;
+    document.getElementById("quiz").innerHTML="";
+    document.getElementById("result").innerHTML=html;
 }
 
 function resetQuiz(){
-
-score={...baseScore}
-step=0
-capacityHint=""
-answersHistory=[]
-
-document.getElementById("result").innerHTML=""
-
-showQuestion()
-
+    score={...baseScore}; step=0; capacityHint=""; answersHistory=[];
+    document.getElementById("result").innerHTML="";
+    showQuestion();
 }
 
-showQuestion()
-
+showQuestion();
 </script>
-
 </body>
 </html>
