@@ -8,7 +8,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
-            max-width: 900px; /* 少し広めに設定 */
+            max-width: 1000px; /* 3つ並ぶので少し広げました */
             margin: auto;
             color: #333;
             background-color: #f9f9f9;
@@ -19,56 +19,82 @@
         }
         .container {
             background: white;
-            padding: 40px 25px;
+            padding: 40px 20px;
             border-radius: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             text-align: center;
         }
-        h1 { font-size: 1.8rem; margin-bottom: 15px; }
-        .subtitle { font-size: 1.1rem; color: #666; margin-bottom: 40px; }
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { margin: 15px 0; }
+        h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        .subtitle { font-size: 1.1rem; color: #666; margin-bottom: 30px; }
+        
+        ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         a {
             text-decoration: none;
             color: #333;
             font-weight: bold;
             font-size: 1.2rem;
             display: block;
-            padding: 30px 20px;
+            padding: 25px 15px;
             border: 2px solid #eee;
             border-radius: 20px;
             background-color: white;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
+        
         a:active { transform: scale(0.98); background-color: #fefefe; }
-        a span { display: block; font-size: 3rem; margin-bottom: 10px; }
+        a span { display: block; font-size: 2.5rem; margin-bottom: 8px; }
 
-        /* iPad / PC レイアウト */
+        /* 冷蔵庫用のアクティブカラー（ブルー系） */
+        .link-reizouko:hover, .link-reizouko:active { border-color: #007bff; background-color: #f0f7ff; }
+        /* 洗濯機用 */
+        .link-sentakuki:hover, .link-sentakuki:active { border-color: #ff8c00; background-color: #fffaf5; }
+        /* 炊飯器用 */
+        .link-suihanki:hover, .link-suihanki:active { border-color: #00a86b; background-color: #f0fff4; }
+
+        /* iPad / PC レイアウト（3つ並べる） */
         @media (min-width: 768px) {
             body { padding: 40px; }
             h1 { font-size: 2.8rem; }
             .subtitle { font-size: 1.4rem; }
-            ul { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-            a { font-size: 1.5rem; padding: 50px 30px; }
-            a:hover { border-color: #ff8c00; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transform: translateY(-5px); }
+            ul { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr 1fr; /* 3列に並べる */
+                gap: 20px; 
+            }
+            a { font-size: 1.3rem; padding: 40px 20px; }
+            a:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1); transform: translateY(-5px); }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏠 家電フィット診断</h1>
-        <p class="subtitle">ライフスタイルにぴったりの一台を。診断スタート！</p>
+        <p class="subtitle">あなたにぴったりの一台を。診断スタート！</p>
         <ul>
             <li>
-                <a href="sentakuki.html">
+                <a href="sentakuki.html" class="link-sentakuki">
                     <span>🧺</span>
-                    ドラム式洗濯機 診断
+                    洗濯機 診断
                 </a>
             </li>
             <li>
-                <a href="suihanki.html">
+                <a href="suihanki.html" class="link-suihanki">
                     <span>🍚</span>
                     炊飯器 診断
+                </a>
+            </li>
+            <li>
+                <a href="reizouko.html" class="link-reizouko">
+                    <span>🧊</span>
+                    冷蔵庫 診断
                 </a>
             </li>
         </ul>
