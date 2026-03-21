@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷蔵庫フィット診断</title>
-
+    <title>冷蔵庫フィットコンサル</title>
     <style>
-        /* 他の診断ページと統一したスタイル */
+        /* 全診断ページ共通の統一スタイル */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
@@ -26,14 +25,13 @@
         }
 
         /* 進捗ドット */
-        .progress { text-align:center; margin-bottom: 20px; }
+        .progress { text-align: center; margin-bottom: 20px; }
         .dot { height: 10px; width: 10px; margin: 5px; display: inline-block; border-radius: 50%; background: #ddd; }
-        .active { background: #0077cc; } /* 冷蔵庫はブルー */
+        .active { background: #0077cc; }
         .done { background: #b3d9ff; }
 
         h3 { font-size: 1.2rem; margin-bottom: 15px; }
 
-        /* カード形式 */
         .card {
             background: white;
             padding: 20px;
@@ -41,7 +39,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* 選択肢：押しやすく改行されたスタイル */
+        /* 選択肢ボタン */
         .option {
             display: block;
             margin: 10px 0;
@@ -54,20 +52,18 @@
             font-weight: bold;
             transition: 0.2s;
         }
-
         .option:hover { border-color: #0077cc; }
         .selected {
             border-color: #0077cc;
             background-color: #f0f7ff;
         }
 
-        /* 下部ボタンエリア */
+        /* 操作ボタン */
         .controls {
             display: flex;
             gap: 12px;
             margin-top: 25px;
         }
-
         button { 
             flex: 1; 
             padding: 16px; 
@@ -77,12 +73,10 @@
             border-radius: 12px; 
             cursor: pointer; 
         }
-
         .next { background: #0077cc; color: white; }
         .back { background: #ddd; color: #666; }
 
-        /* 結果表示エリア */
-        .resultArea { margin-top: 20px; }
+        /* 結果エリア */
         .rank { 
             background: white; 
             padding: 20px; 
@@ -92,7 +86,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* アクションボタン */
         .actionButtons { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
         .reset { background: #0077cc; color: white; padding: 18px; font-size: 1.1rem; font-weight: bold; width: 100%; border-radius: 12px; border: none; cursor: pointer; }
         .homeBtn { 
@@ -110,6 +103,7 @@
         @media (min-width: 768px) {
             body { padding: 40px; font-size: 18px; }
             h1 { font-size: 2.2rem; }
+            h3 { font-size: 1.5rem; }
             .option { padding: 24px; font-size: 1.2rem; }
             .rank b { font-size: 1.4rem !important; }
         }
@@ -118,7 +112,7 @@
 
 <body>
 
-    <h1>🧊 冷蔵庫フィット診断</h1>
+    <h1>🧊 冷蔵庫フィットコンサル</h1>
 
     <div class="progress" id="progress"></div>
 
@@ -130,22 +124,23 @@
         </div>
     </div>
 
-    <div id="resultArea" class="resultArea"></div>
+    <div id="resultArea"></div>
 
     <script>
+        let answers = {};
+        let current = 0;
+
         const questions = [
-            {q:"① 世帯人数", key:"size", o:[["1人","s"],["2〜3人","m"],["3人以上","l"]]},
-            {q:"② 野菜の使用量", key:"veg", o:[["多い（自炊派）","high"],["普通","mid"],["少ない","low"]]},
-            {q:"③ 冷凍食品の使用量", key:"freeze", o:[["多い（まとめ買い派）","high"],["普通","mid"],["少ない","low"]]},
-            {q:"④ 氷の使用頻度", key:"ice", o:[["多い","high"],["普通","mid"],["少ない","low"]]},
-            {q:"⑤ 冷凍室の位置", key:"pos", o:[["真ん中がいい","down"],["下がいい","up"],["どちらでも","any"]]},
-            {q:"⑥ 設置スペース（奥行）", key:"space", o:[["65cm未満（狭い）","small"],["65cm以上（標準）","normal"]]},
-            {q:"⑦ 扉の開き方", key:"door", o:[["両開き・観音開きがいい","yes"],["片開きでOK","no"]]},
-            {q:"⑧ グレードの希望", key:"grade", o:[["コスパ重視","low"],["標準的","mid"],["高機能・デザイン重視","high"]]}
+            {q: "① 設置幅", key: "width", o: [["60cm", "60"], ["65cm", "65"], ["66cm以上", "66"]]},
+            {q: "② ドアタイプ", key: "door", dynamic: true},
+            {q: "③ よく使うのは？", key: "use", o: [["野菜室", "veg"], ["冷凍室", "freeze"]]}
         ];
 
-        let current = 0;
-        let answers = {};
+        function getDoorOptions() {
+            if (answers.width == "60") return [["片開き", "single"]];
+            if (answers.width == "65") return [["片開き", "single"], ["両開き（観音開き）", "double"]];
+            return [["両開き（観音開き）", "double"]];
+        }
 
         function updateProgress() {
             let html = "";
@@ -162,16 +157,19 @@
             updateProgress();
             let q = questions[current];
             let html = `<h3>${q.q}</h3>`;
-            q.o.forEach(v => {
+            let options = q.dynamic ? getDoorOptions() : q.o;
+
+            options.forEach(v => {
                 let sel = answers[q.key] == v[1] ? "selected" : "";
                 html += `<div class="option ${sel}" onclick="select('${q.key}','${v[1]}')">${v[0]}</div>`;
             });
+
             document.getElementById("quiz").innerHTML = html;
         }
 
         function select(k, v) {
             answers[k] = v;
-            render(); // 再描画して選択状態を表示
+            render();
         }
 
         function next() {
@@ -194,52 +192,84 @@
         }
 
         function showResult() {
-            let score = { mitsu:0, toshi:0, hita:0, sharp:0, pana:0, aqua:0, haier:0 };
+            let score = {mitsu:0, toshi:0, hita:0, sharp:0, pana:0, aqua:0, haier:0};
 
-            if (answers.veg == "high") score.toshi += 3;
-            if (answers.freeze == "high") { score.hita += 3; score.pana += 2; }
-            if (answers.ice == "high") score.mitsu += 3;
-            if (answers.space == "small") score.sharp += 3;
-            if (answers.door == "yes") score.sharp += 2;
-            if (answers.grade == "high") score.mitsu += 2;
-            if (answers.grade == "low") score.haier += 3;
-            if (answers.pos == "up") score.aqua += 2;
-            if (answers.pos == "any") score.mitsu += 1;
+            if (answers.use == "veg") score.toshi += 3;
+            if (answers.use == "freeze") { score.hita += 3; score.mitsu += 2; }
+            if (answers.door == "double") score.sharp += 2;
+            if (answers.door == "single") score.aqua += 1;
+            if (answers.width == "60") score.haier += 2;
 
-            const makerName = { mitsu:"三菱電機", toshi:"東芝", hita:"日立", sharp:"シャープ", pana:"パナソニック", aqua:"AQUA", haier:"ハイアール" };
+            let width = answers.width;
+            let allowed = [];
+            if (width == "60") allowed = ["mitsu", "toshi", "hita", "sharp", "pana", "aqua", "haier"];
+            if (width == "65") allowed = ["mitsu", "toshi", "hita", "sharp", "pana", "aqua"];
+            if (width == "66") allowed = ["mitsu", "toshi", "hita", "sharp", "pana"];
+
+            const makerName = { mitsu: "三菱電機", toshi: "東芝", hita: "日立", sharp: "シャープ", pana: "パナソニック", aqua: "AQUA", haier: "ハイアール" };
             const models = {
-                mitsu: { l:["MR-WZ55N"], m:["MR-MZ49N"], s:["MR-CX37N"] },
-                toshi: { l:["GR-W550FZ"], m:["GR-W450FZ"], s:["GR-W350FZ"] },
-                hita: { l:["R-HWC54T"], m:["R-HWC48T"], s:["R-HZC36T"] },
-                sharp: { l:["SJ-MF51R"], m:["SJ-MF46R"], s:["SJ-D35R"] },
-                pana: { l:["NR-F55HY2"], m:["NR-E45RY3"], s:["NR-C37ES2"] },
-                aqua: { l:["AQR-V37P"], m:["AQR-V37P"], s:["AQR-36A"] },
-                haier: { l:["JR-NF"], m:["JR-NF"], s:["JR-NF140P"] }
+                mitsu:{"60":["MR-P15M"],"65":["MR-MZ49N"],"66":["MR-WZ55N"]},
+                toshi:{"60":["GR-W350FZ"],"65":["GR-W450FZ"],"66":["GR-W550FZ"]},
+                hita:{"60":["R-HZC36T"],"65":["R-HWS47"],"66":["R-HWC54T"]},
+                sharp:{"60":["SJ-D35R"],"65":["SJ-MF46R"],"66":["SJ-MF51R"]},
+                pana:{"60":["NR-C37ES2"],"65":["NR-E45RY3"],"66":["NR-F55HY2"]},
+                aqua:{"60":["AQR-36A"],"65":["AQR-36A"],"66":["AQR-36A"]},
+                haier:{"60":["JR-NF140P"],"65":[],"66":[]}
             };
             const desc = {
-                mitsu:"「瞬冷凍」と独立製氷で使い勝手バツグン。",
-                toshi:"「新鮮摘みたて野菜室」で野菜の鮮度が長持ち。",
-                hita:"「まるごとチルド」でどこに置いても鮮度キープ。",
-                sharp:"「プラズマクラスター」搭載。両開きドアも便利。",
-                pana:"「はやうま冷凍」で業務用レベルの急速冷凍が可能。",
-                aqua:"デザインがオシャレでコスパも優秀。",
-                haier:"シンプルで低価格。一人暮らしに最適。"
+                mitsu: "瞬冷凍＋独立製氷で冷凍も氷も強い万能機",
+                toshi: "野菜室の鮮度保持がトップクラス",
+                hita: "真空チルド＋大容量冷凍で作り置き最強",
+                sharp: "スリム設計で設置しやすく両開きが便利",
+                pana: "省エネと冷凍性能のバランスが優秀",
+                aqua: "シンプルで使いやすくコスパ良し",
+                haier: "低価格で一人暮らし向け"
             };
 
-            let arr = Object.entries(score).sort((a, b) => b[1] - a[1]);
-            let size = answers.size;
+            let baseArr = Object.entries(score)
+                .filter(([k]) => allowed.includes(k))
+                .sort((a, b) => b[1] - a[1]);
 
             let html = "<h2>診断結果ランキング</h2>";
-            for (let i = 0; i < 3; i++) {
-                let key = arr[i][0];
-                let modelList = models[key][size];
-                let model = modelList.length > 0 ? modelList[0] : "おすすめモデル";
-                html += `<div class="rank"><b style="font-size:1.2rem; color:#0077cc;">${i+1}位 ${makerName[key]}</b><br><div style="margin-top:8px;"><strong>おすすめ：</strong>${model}<br><strong>特徴：</strong>${desc[key]}</div></div>`;
+            let usedKeys = [];
+            for (let i = 0; i < Math.min(3, baseArr.length); i++) {
+                let key = baseArr[i][0];
+                usedKeys.push(key);
+                let list = models[key][width] || [];
+                let modelName = list.length ? list.join(" / ") : "該当なし";
+
+                html += `
+                <div class="rank">
+                    <b style="font-size:1.2rem; color:#0077cc;">${i+1}位 ${makerName[key]}</b><br>
+                    <div style="margin-top:8px;">
+                        <strong>おすすめ：</strong>${modelName}<br>
+                        <strong>特徴：</strong>${desc[key]}
+                    </div>
+                </div>`;
+            }
+
+            if (width == "60") {
+                let bigger = Object.entries(score)
+                    .filter(([k]) => models[k]["65"].length > 0 && !usedKeys.includes(k))
+                    .sort((a, b) => b[1] - a[1]).slice(0, 1);
+
+                if (bigger.length) {
+                    html += `<h3 style="margin-top:25px; color:#666;">💡 もう少し設置幅を広げられるなら</h3>`;
+                    bigger.forEach(([key]) => {
+                        let model = models[key]["65"].join(" / ");
+                        html += `
+                        <div class="rank" style="border-left: 4px solid #0077cc;">
+                            <b>${makerName[key]}</b><br>
+                            ${model}<br>
+                            <small>${desc[key]}</small>
+                        </div>`;
+                    });
+                }
             }
 
             html += `
                 <div class="actionButtons">
-                    <button class="reset" onclick="reset()">もう一度診断する</button>
+                    <button class="reset" onclick="reset()">最初から診断する</button>
                     <a href="index.html" class="homeBtn">トップページに戻る</a>
                 </div>
             `;
